@@ -1,0 +1,32 @@
+{
+  "ci": {
+    "collect": {
+      "url": [
+        "https://www.inclutec.org/",
+        "https://www.inclutec.org/login",
+        "https://www.inclutec.org/signup"
+      ],
+
+      "numberOfRuns": 3,
+
+      "settings": {
+        "preset": "perf",                   
+        "onlyCategories": ["performance", "accessibility"],    
+        "emulatedFormFactor": "desktop",
+        "throttlingMethod": "devtools"
+      }
+    },
+
+    "assert": {
+      "assertions": {
+        "categories:performance": ["warn", { "minScore": 0.8 }],
+        "categories:accessibility": ["warn", { "minScore": 0.9 }]
+      }
+    },
+
+    "upload": {
+      "target": "filesystem",
+      "outputDir": "reports/lhci"
+    }
+  }
+}
