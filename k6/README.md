@@ -5,7 +5,7 @@ Testing de Performance - Aseguramiento de la Calidad - S2-2025
 ## Tabla de Contenidos
 
 - [Instalación](#instalación)
-- [Estructura del Proyecto](#estructura-del-proyecto)
+- [Estructura de las Pruebas](#estructura-de-las-pruebas)
 - [Configuración](#configuración)
 - [Ejecución de Tests](#ejecución-de-tests)
 - [Escenarios Disponibles](#escenarios-disponibles)
@@ -59,7 +59,7 @@ sudo mv k6 /usr/local/bin/
 k6 version
 ```
 
-## Estructura del Proyecto
+## Estructura de las Pruebas
 
 ```
 k6/
@@ -198,14 +198,6 @@ k6 run scenarios/spike.js
 
 ```powershell
 k6 run scenarios/stress.js
-```
-
-### Opciones Adicionales
-
-#### Generar reporte HTML
-
-```powershell
-k6 run --out json=results.json test.js
 ```
 
 ### Tipos de Executors
