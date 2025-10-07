@@ -1,9 +1,6 @@
 # piels-performance
 Testing de Performance - Aseguramiento de la Calidad - S2-2025
 
-TODO 
-agregar instrucciones para taller 
-
 # Lighthouse 
 
 ## 1. Requisitos
@@ -21,7 +18,6 @@ En la raíz del proyecto, ejecute el siguiente comando para instalar las depende
 ```bash
 npm ci
 ```
----
 
 ## 3. Ejecución 
 Para ejecutar las pruebas de Lighthouse, se debe correr el siguiente comando: 
@@ -35,4 +31,8 @@ Una vez finaliza la ejecución, se pueden visualizar los resultados con el sigui
 ```bash
 node light-report.js
 ```
+---
 
+# k6
+
+k6 y sus instrucciones se encuentran dentro del folder `k6`
