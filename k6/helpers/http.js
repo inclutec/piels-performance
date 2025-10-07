@@ -2,10 +2,10 @@ import http from 'k6/http';
 import { check } from 'k6';
 import { status2xx } from './checks.js';
 
-export function authHeaders(token) {
+export function authHeaders(API_TOKEN) {
   return {
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${API_TOKEN}`,
       'Content-Type': 'application/json',
     },
     // tag requests so thresholds can target {kind:api, endpoint:...}
