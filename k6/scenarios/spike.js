@@ -1,7 +1,7 @@
 import { commonOptions } from '../options.js';
 import { get, authHeaders } from '../helpers/http.js';
 import { record } from '../helpers/metrics.js';
-import { endpoints, TOKEN } from '../helpers/data.js';
+import { ENDPOINTS, API_TOKEN } from '../helpers/data.js';
 
 export const options = {
   ...commonOptions,
@@ -13,7 +13,7 @@ export const options = {
       maxVUs: Number(150),
       stages: [
         { target: 5,  duration: '10s' },  // baseline
-        { target: 100, duration: '10s' }, // spike
+        { target: 200, duration: '10s' }, // spike
         { target: 5,  duration: '30s' },  // recover
       ],
       tags: { scenario: 'spike' },
@@ -22,10 +22,10 @@ export const options = {
 };
 
 export default function () {
-  const slug = 'ahorrar';
-  const params = authHeaders(TOKEN);
+  const slug = 'HOLA';
+  const params = authHeaders(API_TOKEN);
   params.tags = { ...params.tags, endpoint: `signs:${slug}` };
 
-  const res = get(endpoints.signBySlug(slug), params);
+  const res = get(ENDPOINTS.signBySlug(slug), params);
   record(res);
 }

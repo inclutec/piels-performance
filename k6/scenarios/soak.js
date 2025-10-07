@@ -1,7 +1,7 @@
 import { commonOptions } from '../options.js';
 import { get, authHeaders } from '../helpers/http.js';
 import { record } from '../helpers/metrics.js';
-import { endpoints, TOKEN } from '../helpers/data.js';
+import { ENDPOINTS, API_TOKEN } from '../helpers/data.js';
 import { sleep } from 'k6';
 
 export const options = {
@@ -21,10 +21,10 @@ export const options = {
 
 export default function () {
   const slug = 'ahorrar';
-  const params = authHeaders(TOKEN);
+  const params = authHeaders(API_TOKEN);
   params.tags = { ...params.tags, endpoint: `signs:${slug}` };
 
-  const res = get(endpoints.signBySlug(slug), params);
+  const res = get(ENDPOINTS.signBySlug(slug), params);
   record(res);
   sleep(0.5); // pace out requests
 }

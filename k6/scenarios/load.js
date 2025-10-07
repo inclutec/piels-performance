@@ -2,7 +2,7 @@ import { commonOptions } from '../options.js';
 import { get, authHeaders } from '../helpers/http.js';
 import { ttfbUnder, latencyUnder } from '../helpers/checks.js';
 import { record } from '../helpers/metrics.js';
-import { endpoints, TOKEN } from '../helpers/data.js';
+import { ENDPOINTS, API_TOKEN } from '../helpers/data.js';
 
 export const options = {
   ...commonOptions,
@@ -21,9 +21,9 @@ export const options = {
 
 export default function () {
   const slug = 'ahorrar';
-  const params = authHeaders(TOKEN);
+  const params = authHeaders(API_TOKEN);
   params.tags = { ...params.tags, endpoint: `signs:${slug}` };
 
-  const res = get(endpoints.signBySlug(slug), params, [ttfbUnder(400), latencyUnder(800)]);
+  const res = get(ENDPOINTS.signBySlug(slug), params, [ttfbUnder(400), latencyUnder(800)]);
   record(res);
 }
