@@ -36,6 +36,14 @@ const METRICS = [
   "speed-index",
 ];
 
+const thresholds = {
+  "first-contentful-paint": { good: 1800, medium: 3000 },
+  "largest-contentful-paint": { good: 2500, medium: 4000 },
+  "total-blocking-time": { good: 200, medium: 600 },
+  "cumulative-layout-shift": { good: 0.1, medium: 0.25 },
+  "speed-index": { good: 3400, medium: 5800 },
+};
+
 function findReports(dir) {
   return fs
     .readdirSync(dir, { withFileTypes: true })
@@ -60,15 +68,34 @@ function avg(values) {
   return nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : null;
 }
 
-function formatMetric(id, value) {
-  if (value === null) return "—";
-  if (id === "cumulative-layout-shift") return value.toFixed(3);
-  return `${(value / 1000).toFixed(2)} s`;
+function colorMetric(id, value) {
+  if (value == null) return "—";
+  const limit = thresholds[id];
+  let color = colors.green;
+  if (!limit) return value;
+
+  const isCLS = id === "cumulative-layout-shift";
+  if (!isCLS) {
+    if (value > limit.medium) color = colors.red;
+    else if (value > limit.good) color = colors.yellow;
+  } else {
+    if (value > limit.medium) color = colors.red;
+    else if (value > limit.good) color = colors.yellow;
+  }
+
+  const formatted =
+    id === "cumulative-layout-shift" ? value.toFixed(3) : `${(value / 1000).toFixed(2)} s`;
+  return color + formatted + colors.reset;
+}
+
+function avgColorMetric(id, value) {
+  if (value == null) return "—";
+  return colorMetric(id, value);
 }
 
 const manifestPath = path.resolve("reports/lhci/manifest.json");
 if (!fs.existsSync(manifestPath)) {
-  console.error(colors.red + "manifest.json not found" + colors.reset);
+  console.error(colors.red + "manifest.json not found at " + manifestPath + colors.reset);
   process.exit(1);
 }
 const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
@@ -108,7 +135,7 @@ const banner = `
 ▐▌   ▐▙▄▄▖▐▌ ▐▌▐▌   ▝▚▄▞▘▐▌ ▐▌▐▌  ▐▌▐▌ ▐▌▐▌  ▐▌▝▚▄▄▖▐▙▄▄▖
 `;
 console.log(colors.cyan + banner + colors.reset);
-console.log(colors.bold + "\nLighthouse Combined Report\n" + colors.reset);
+console.log(colors.bold + colors.cyan + "\nReporte de Resultados de pruebas Lighthouse \n" + colors.reset);
 console.log("=".repeat(100));
 
 for (const [url, runs] of Object.entries(groupedManifest)) {
@@ -129,12 +156,12 @@ for (const [url, runs] of Object.entries(groupedManifest)) {
     for (const metric of METRICS) {
       const vals = groupedHtml[url].map(r => r[metric]);
       const mean = avg(vals);
-      const formattedMean = formatMetric(metric, mean);
-      console.log(`    ${metric.padEnd(28)} avg: ${formattedMean}  runs: ${vals.map(v => formatMetric(metric, v)).join(", ")}`);
+      const meanColored = avgColorMetric(metric, mean);
+      const perRun = vals.map(v => colorMetric(metric, v)).join(", ");
+      console.log(`    ${metric.padEnd(28)} avg: ${meanColored}  runs: ${perRun}`);
     }
   }
 
   console.log("=".repeat(100));
 }
 
-console.log(colors.cyan + "\nCombined manifest + HTML metrics processed successfully.\n" + colors.reset);
