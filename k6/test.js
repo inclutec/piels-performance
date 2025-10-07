@@ -17,7 +17,7 @@ export const options = {
 
 const baseUrl = 'https://api.inclutec.org';
 
-const apiToken = 'API_TOKEN_HERE';
+const apiAPI_TOKEN = 'API_TOKEN_HERE';
 
 const headers = {
     Authorization: `Bearer ${apiToken}`,
