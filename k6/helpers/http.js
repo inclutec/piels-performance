@@ -9,7 +9,7 @@ export function authHeaders(API_TOKEN) {
       'Content-Type': 'application/json',
     },
     // tag requests so thresholds can target {kind:api, endpoint:...}
-    tags: { kind: 'api' }, //TODO Revisar como funciona esta madre
+    tags: { kind: 'api' },
   };
 }
 
