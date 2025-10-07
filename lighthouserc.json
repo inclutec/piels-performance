@@ -4,7 +4,12 @@
       "url": [
         "https://www.inclutec.org/",
         "https://www.inclutec.org/login",
-        "https://www.inclutec.org/signup"
+        "https://www.inclutec.org/signup",
+        "https://www.inclutec.org/diccionario",
+        "https://www.inclutec.org/diccionarioPalabra/hola",
+        "https://www.inclutec.org/traductor",
+        "https://www.inclutec.org/traducido",
+        "https://www.inclutec.org/transcriptor"
       ],
 
       "numberOfRuns": 3,
