@@ -11,10 +11,20 @@ const colors = {
   cyan: "\x1b[36m",
 };
 
+function stripColors(str) {
+  return str.replace(/\x1b\[[0-9;]*m/g, "");
+}
+
 function colorScore(score) {
   if (score >= 0.9) return colors.green + (score * 100).toFixed(0) + "%" + colors.reset;
   if (score >= 0.7) return colors.yellow + (score * 100).toFixed(0) + "%" + colors.reset;
   return colors.red + (score * 100).toFixed(0) + "%" + colors.reset;
+}
+
+function plainScore(score) {
+  if (score >= 0.9) return `${(score * 100).toFixed(0)}% (Bueno)`;
+  if (score >= 0.7) return `${(score * 100).toFixed(0)}% (Medio)`;
+  return `${(score * 100).toFixed(0)}% (Deficiente)`;
 }
 
 function bar(score, length = 20) {
@@ -26,6 +36,12 @@ function bar(score, length = 20) {
   if (score < 0.9) color = colors.yellow;
   if (score < 0.7) color = colors.red;
   return color + fullBar + colors.reset + emptyBar;
+}
+
+function plainBar(score, length = 20) {
+  const full = Math.round(score * length);
+  const empty = length - full;
+  return "█".repeat(full) + "░".repeat(empty);
 }
 
 const METRICS = [
@@ -88,14 +104,39 @@ function colorMetric(id, value) {
   return color + formatted + colors.reset;
 }
 
+function plainMetric(id, value) {
+  if (value == null) return "—";
+  const limit = thresholds[id];
+  let status = "Bueno";
+  if (!limit) return value;
+
+  const isCLS = id === "cumulative-layout-shift";
+  if (!isCLS) {
+    if (value > limit.medium) status = "Deficiente";
+    else if (value > limit.good) status = "Medio";
+  } else {
+    if (value > limit.medium) status = "Deficiente";
+    else if (value > limit.good) status = "Medio";
+  }
+
+  const formatted =
+    id === "cumulative-layout-shift" ? value.toFixed(3) : `${(value / 1000).toFixed(2)} s`;
+  return `${formatted} (${status})`;
+}
+
 function avgColorMetric(id, value) {
   if (value == null) return "—";
   return colorMetric(id, value);
 }
 
+function avgPlainMetric(id, value) {
+  if (value == null) return "—";
+  return plainMetric(id, value);
+}
+
 const manifestPath = path.resolve("reports/lhci/manifest.json");
 if (!fs.existsSync(manifestPath)) {
-  console.error(colors.red + "manifest.json not found at " + manifestPath + colors.reset);
+  console.error(colors.red + "No se encontró manifest.json en " + manifestPath + colors.reset);
   process.exit(1);
 }
 const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
@@ -134,34 +175,51 @@ const banner = `
 ▐▛▀▘ ▐▛▀▀▘▐▛▀▚▖▐▛▀▀▘▐▌ ▐▌▐▛▀▚▖▐▌  ▐▌▐▛▀▜▌▐▌ ▝▜▌▐▌   ▐▛▀▀▘
 ▐▌   ▐▙▄▄▖▐▌ ▐▌▐▌   ▝▚▄▞▘▐▌ ▐▌▐▌  ▐▌▐▌ ▐▌▐▌  ▐▌▝▚▄▄▖▐▙▄▄▖
 `;
+
 console.log(colors.cyan + banner + colors.reset);
-console.log(colors.bold + colors.cyan + "\nReporte de Resultados de pruebas Lighthouse \n" + colors.reset);
+console.log(colors.bold + colors.cyan + "\nReporte de Resultados de Pruebas Lighthouse\n" + colors.reset);
 console.log("=".repeat(100));
+
+let mdReport = "# Reporte de Resultados de Pruebas Lighthouse\n\n";
+mdReport += "Este reporte contiene los resultados promedios y detallados de las ejecuciones de Lighthouse.\n\n";
+mdReport += "## Autores\n";
+mdReport += "- \n";
+mdReport += "- \n";
+mdReport += "---\n";
 
 for (const [url, runs] of Object.entries(groupedManifest)) {
   console.log("\n" + colors.bold + url + colors.reset);
   console.log("-".repeat(url.length));
+  mdReport += `\n## ${url}\n\n`;
 
-  const metrics = [...new Set(runs.flatMap(r => Object.keys(r)))];
+  const metrics = [...new Set(runs.flatMap((r) => Object.keys(r)))];
   for (const metric of metrics) {
-    const values = runs.map(r => r[metric]).filter(v => typeof v === "number");
+    const values = runs.map((r) => r[metric]).filter((v) => typeof v === "number");
     if (values.length === 0) continue;
     const avgVal = avg(values);
     const avgBar = bar(avgVal, 30);
     console.log(`  ${metric.padEnd(18)} ${avgBar}  ${colorScore(avgVal)} ${colors.bold}(avg)${colors.reset}`);
+    mdReport += `- **${metric}**: ${plainBar(avgVal, 30)}  ${plainScore(avgVal)} (promedio)\n`;
   }
 
   if (groupedHtml[url]) {
-    console.log("\n" + colors.cyan + "  Detailed Metrics:" + colors.reset);
+    console.log("\n" + colors.cyan + "  Métricas Detalladas:" + colors.reset);
+    mdReport += `\n### Métricas Detalladas\n\n`;
     for (const metric of METRICS) {
-      const vals = groupedHtml[url].map(r => r[metric]);
+      const vals = groupedHtml[url].map((r) => r[metric]);
       const mean = avg(vals);
       const meanColored = avgColorMetric(metric, mean);
-      const perRun = vals.map(v => colorMetric(metric, v)).join(", ");
+      const perRun = vals.map((v) => colorMetric(metric, v)).join(", ");
+      const perRunPlain = vals.map((v) => plainMetric(metric, v)).join(", ");
       console.log(`    ${metric.padEnd(28)} avg: ${meanColored}  runs: ${perRun}`);
+      mdReport += `- ${metric}: promedio ${avgPlainMetric(metric, mean)} | ejecuciones: ${perRunPlain}\n`;
     }
+    mdReport += "\n### Causas de los resultados\n"
   }
 
   console.log("=".repeat(100));
+  mdReport += "\n---\n";
 }
 
+fs.writeFileSync("reporte_lighthouse.md", mdReport, "utf8");
+console.log(colors.green + "\nArchivo Markdown generado: reporte_lighthouse.md\n" + colors.reset);
